@@ -4,3 +4,4 @@
 *.out
 *.dSYM
 *.o
+.ipynb_checkpoints/**
