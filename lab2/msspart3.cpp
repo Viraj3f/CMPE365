@@ -4,64 +4,11 @@
 #include <utility>
 #include <algorithm>
 
+#include "shared.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
-struct Sublist
-{
-    int start;
-    int end;
-    int sum;
-
-    int size() const
-    {
-        return end - start + 1;
-    }
-
-    bool operator<(const Sublist& right) const
-    {
-        if (this->sum == right.sum)
-        {
-            return this->size() > right.size();
-        }
-        else
-        {
-            return this->sum < right.sum;
-        }
-    }
-
-    bool operator==(const Sublist& right) const
-    {
-        return this->start == right.start && this->end == right.end && this->sum == right.sum;
-    }
-};
-
-ostream& operator<<(ostream& io, Sublist& s)
-{
-    io << "Start: " << s.start << " End: " << s.end << " Sum: " << s.sum;
-    return io;
-}
-
-ostream& operator<<(ostream& io, std::vector<int> v)
-{
-    io << "[";
-    if (v.size() > 0)
-    {
-        for (int i = 0; i < v.size() - 1; i++)
-        {
-            io << v[i] << ", ";
-        }
-        io << v[v.size() - 1];
-    }
-    io << "]";
-    return io;
-}
-
-/*
- * Given an vector v, this will find the mss that passes through the midpoint.
- * This is done by finding the mss in the range (0, mid) and (mid + 1, end)
- * individually, and then combining them in the end.
- */
 std::pair<Sublist, Sublist> mssThatCrossesMidpoint(std::vector<int>& v, int start, int end, int mid)
 {
 
@@ -112,7 +59,6 @@ std::pair<Sublist, Sublist> mssThatCrossesMidpoint(std::vector<int>& v, int star
         }
     }
 
-
     greatestSublist.sum = leftMaxSum + rightMaxSum;
     if (secondLeftMaxSum == INT_MIN || secondRightMaxSum == INT_MIN)
     {
@@ -144,13 +90,6 @@ std::pair<Sublist, Sublist> mss(std::vector<int>& v, int start, int end)
 
     std::vector<Sublist> sublists{left.first, left.second, right.first, right.second, midpoint.first, midpoint.second};
     std::sort(sublists.begin(), sublists.end());
-
-    //for (int i = 0; i < sublists.size(); i++)
-    //{
-    //    cout << sublists[i] << endl;
-    //}
-    //cout << endl;
-
 
     return {sublists[sublists.size() - 1], sublists[sublists.size() - 2]};
 }

@@ -1,47 +1,11 @@
 #include <iostream>
 #include <vector>
 #include <assert.h>
+#include "shared.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
-struct Sublist
-{
-    int start;
-    int end;
-    int sum;
-
-    int size()
-    {
-        return end - start + 1;
-    }
-};
-
-ostream& operator<<(ostream& io, Sublist& s)
-{
-    io << "Sum: " << s.sum << " Start: " << s.start << " End: " << s.end;
-    return io;
-}
-
-ostream& operator<<(ostream& io, std::vector<int> v)
-{
-    io << "[";
-    if (v.size() > 0)
-    {
-        for (int i = 0; i < v.size() - 1; i++)
-        {
-            io << v[i] << ", ";
-        }
-        io << v[v.size() - 1];
-    }
-    io << "]";
-    return io;
-}
-
-/*
- * Given an vector v, this will find the mss that passes through the midpoint.
- * This is done by finding the mss in the range (0, mid) and (mid + 1, end)
- * individually, and then combining them in the end.
- */
 Sublist mssThatCrossesMidpoint(std::vector<int>& v, int start, int end, int mid)
 {
     // Final option is that mss crosses through the midpoint
