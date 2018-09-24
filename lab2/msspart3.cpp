@@ -9,10 +9,13 @@
 using std::cout;
 using std::endl;
 
+/*
+ * Returns the two largest mss that in the the range (start, mid) and (mid + 1, end)
+ */
 std::pair<Sublist, Sublist> mssThatCrossesMidpoint(std::vector<int>& v, int start, int end, int mid)
 {
 
-    // Final option is that mss crosses through the midpoint
+    // Set the greatest sublist to INT_MIN, since it will be passed to secondGreatestSublist.
     Sublist greatestSublist = {INT_MIN, INT_MAX, INT_MIN};
     Sublist secondGreatestsublist = {};
 
@@ -28,16 +31,19 @@ std::pair<Sublist, Sublist> mssThatCrossesMidpoint(std::vector<int>& v, int star
             secondGreatestsublist.start = greatestSublist.start;
             secondLeftMaxSum = leftMaxSum;
 
+            // Update the greatest
             leftMaxSum = localSum;
             greatestSublist.start = i;
         }
         else if (localSum > secondLeftMaxSum)
         {
+            // Second greatest can be updated, but not the greatest.
             secondGreatestsublist.start = i;
             secondGreatestsublist.sum = localSum;
         }
     }
 
+    // Repeat the same process, but in the reverse direction.
     localSum = 0;
     int rightMaxSum = INT_MIN;
     int secondRightMaxSum = INT_MIN;
@@ -62,6 +68,10 @@ std::pair<Sublist, Sublist> mssThatCrossesMidpoint(std::vector<int>& v, int star
     greatestSublist.sum = leftMaxSum + rightMaxSum;
     if (secondLeftMaxSum == INT_MIN || secondRightMaxSum == INT_MIN)
     {
+        // Since adding two INT_MIN values will result in overflow, 
+        // set the value to INT_MIN if either is true. This will happen
+        // in cases where there is no "second largest" sublist, such as 
+        // a list with three elements.
         secondGreatestsublist.sum = INT_MIN;
     }
     else
@@ -72,6 +82,11 @@ std::pair<Sublist, Sublist> mssThatCrossesMidpoint(std::vector<int>& v, int star
     return {greatestSublist, secondGreatestsublist};
 }
 
+/*
+ * Returns the two largest overlapping mss. 
+ * rval.first is the largest value
+ * rval.second is the second largest value
+ */
 std::pair<Sublist, Sublist> mss(std::vector<int>& v, int start, int end)
 {
     if (start == end)
@@ -82,15 +97,17 @@ std::pair<Sublist, Sublist> mss(std::vector<int>& v, int start, int end)
         };
     }
 
-    // Generate mss on the left and right
+    // Generate mss on the left and right and midpoint
     int mid = (start + end)/2;
     std::pair<Sublist, Sublist> left = mss(v, start, mid);
     std::pair<Sublist, Sublist> right = mss(v, mid + 1, end);
     std::pair<Sublist, Sublist> midpoint = mssThatCrossesMidpoint(v, start, end, mid);
 
+    // Sort all the sublist values
     std::vector<Sublist> sublists{left.first, left.second, right.first, right.second, midpoint.first, midpoint.second};
     std::sort(sublists.begin(), sublists.end());
 
+    // Select the top two values
     return {sublists[sublists.size() - 1], sublists[sublists.size() - 2]};
 }
 
@@ -181,6 +198,17 @@ void part3()
     assert(sol.second.start == 7);
     assert(sol.second.end == 8);
     assert(sol.second.sum == 8);
+
+    std::vector<int> v8{0, -2, 1, 0, 0, -1};
+    sol = mss(v8, 0, v8.size() - 1);
+    cout << sol.first << endl;
+    cout << sol.second << endl;
+    assert(sol.first.start == 2);
+    assert(sol.first.end == 2);
+    assert(sol.first.sum == 1);
+    assert(sol.second.start == 2);
+    assert(sol.second.end == 3);
+    assert(sol.second.sum == 1);
 
     cout << endl;
 }

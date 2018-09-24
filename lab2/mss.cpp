@@ -6,9 +6,11 @@
 using std::cout;
 using std::endl;
 
+/*
+ * Returns the mss that is in the the range (start, mid) and (mid + 1, end)
+ */
 Sublist mssThatCrossesMidpoint(std::vector<int>& v, int start, int end, int mid)
 {
-    // Final option is that mss crosses through the midpoint
     Sublist leftMidRight;
 
     int localSum = 0;
@@ -40,6 +42,10 @@ Sublist mssThatCrossesMidpoint(std::vector<int>& v, int start, int end, int mid)
     return leftMidRight;
 }
 
+/*
+ * Returns the mss in a vector between the bounds of
+ * start and end.
+ */
 Sublist mss(std::vector<int>& v, int start, int end)
 {
     if (start == end)
@@ -47,7 +53,7 @@ Sublist mss(std::vector<int>& v, int start, int end)
         return {start, end, v[start]};
     }
 
-    // Generate mss on the left and right
+    // Generate mss on the left and right and select the maximum sublist
     int mid = (start + end)/2;
     Sublist sublistWithMaxSum;
     Sublist left = mss(v, start, mid);
@@ -61,6 +67,8 @@ Sublist mss(std::vector<int>& v, int start, int end)
         sublistWithMaxSum = left.size() <= right.size() ? left : right;
     }
 
+    // Replace the mss that crosses through the midpoint if the sum is greater
+    // than the one on the sides and the number of elements is smaller.
     Sublist midpoint = mssThatCrossesMidpoint(v, start, end, mid);
     if (midpoint.sum > sublistWithMaxSum.sum ||
             (midpoint.sum == sublistWithMaxSum.sum && midpoint.size() < sublistWithMaxSum.size()))
@@ -71,6 +79,10 @@ Sublist mss(std::vector<int>& v, int start, int end)
     return sublistWithMaxSum;
 }
 
+/*
+ * Find the second largest, non-overlapping mss by calling mss, replacing the sublist
+ * with the minimum value, and calling mss again. This modifies the input vector.
+ */
 Sublist mss2(std::vector<int>& v, int, int)
 {
     Sublist firstSolution = mss(v, 0, v.size() - 1);
@@ -143,6 +155,13 @@ void part1()
     assert(sol.start == 5);
     assert(sol.end == 5);
 
+    std::vector<int> v8{0, -2, 1, 0, 0, -1};
+    sol = mss(v8, 0, v8.size() - 1);
+    cout << sol << endl;
+    assert(sol.sum == 1);
+    assert(sol.start == 2);
+    assert(sol.end == 2);
+
     cout << endl;
 }
 
@@ -198,6 +217,13 @@ void part2()
     assert(sol.sum == 8);
     assert(sol.start == 7);
     assert(sol.end == 8);
+
+    std::vector<int> v8{0, -2, 1, 0, 0, -1};
+    sol = mss2(v8, 0, v8.size() - 1);
+    cout << sol << endl;
+    assert(sol.sum == 0);
+    assert(sol.start == 0);
+    assert(sol.end == 0);
 }
 
 
