@@ -1,20 +1,33 @@
 #include <iostream>
 #include <random>
-#include <list>
+#include <vector>
+#include <cmath>
 #include <unordered_set>
-#include <utility>
 
 using std::cout;
 using std::endl;
 using std::vector;
-using std::unordered_set;
 using std::string;
-using std::pair;
 
 struct Point
 {
-    int x;
-    int y;
+    double x;
+    double y;
+    double s;
+    double phi;
+
+    void calculatePolar(const Point& ref)
+    {
+        double x_rel = (double)x - (double)ref.x;
+        double y_rel = (double)y - (double)ref.y;
+        this->s = sqrt(pow(x_rel, 2) + pow(y_rel, 2));
+        this->phi = atan2(y_rel, x_rel);
+    }
+
+    float calculateDist(const Point& other)
+    {
+        return sqrt(pow(x - other.x, 2) + pow(y - other.y, 2));
+    }
 
     std::string hash()
     {
@@ -24,226 +37,189 @@ struct Point
 
 std::ostream& operator<<(std::ostream& io, Point& s)
 {
-    io << '{' << s.x << ", " << s.y << '}';
+    io << s.x << "," << s.y;
     return io;
 }
 
-class ConvexHullSolver
+bool isCW(Point& a, Point& b, Point& c)
 {
-private:
-    vector<Point>& points;
-    unordered_set<string>& pointsInConvexHull;
+    int ans = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    return ans > 0;
+}
 
-    /*
-     * For a line that passes through x and y, return 1 is z is
-     * above the line, -1 if it is below or 0 if it is tangent.
-     */
-    int getTangentDirection(Point& a, Point& b, Point& z)
-    {
-        int det = a.x * b.y - a.x * z.y
-                - a.y * b.x + a.y * z.x
-                + b.x * z.y - b.y * z.x;
-
-        if (det == 0)
+vector<Point*> grahmScan(vector<Point>& points)
+{
+    // Sort points by y value
+    std::sort(points.begin(), points.end(),
+        [](const Point &a, const Point &b) -> bool
         {
-            return det;
-        }
+            return a.y < b.y;
+        });
 
-        return det;
+    Point& p0 = points[0];
+    for (int i = 1; i < points.size(); i++)
+    {
+        points[i].calculatePolar(p0);
     }
 
-    std::pair<Point*, Point*> mergeCH(vector<Point*> aCH, vector<Point*> bCH, int direction)
+    // Sort points by relative phi value
+    std::sort(points.begin() + 1, points.end(),
+        [](const Point &a, const Point &b) -> bool
+        {
+            return a.phi < b.phi;
+        });
+
+    vector<Point*> st;
+    st.push_back(&p0);
+    st.push_back(&points[1]);
+    st.push_back(&points[2]);
+    for (int i = 3; i < points.size(); i++)
     {
-
-        cout << "ch points" << endl;
-        for (Point* a : aCH)
+        while (isCW(*st[st.size() - 1], *st[st.size() - 2], points[i]))
         {
-            cout << *a << ',';
+            st.pop_back();
         }
-        cout << endl;
-
-        for (Point* b : bCH)
-        {
-            cout << *b << ',';
-        }
-        cout << endl;
-
-
-        int aIndex = 0, bIndex = 0;
-        Point* a = aCH[aIndex];
-        Point* aNext = aCH[(aIndex + 1) % aCH.size()];
-        Point* b = bCH[bIndex];
-        Point* bNext = bCH[(bIndex + 1) % bCH.size()];
-        while (direction * getTangentDirection(*a, *b, *aNext) > 0 ||
-                direction * getTangentDirection(*a, *b, *bNext) > 0)
-        {
-            while (direction * getTangentDirection(*a, *b, *aNext) > 0)
-            {
-                pointsInConvexHull.erase(a->hash());
-                aIndex = (aIndex + 1) % aCH.size();
-                a = aCH[aIndex];
-                aNext = aCH[(aIndex + 1) % aCH.size()];
-            }
-
-            while (direction * getTangentDirection(*a, *b, *bNext) > 0)
-            {
-                pointsInConvexHull.erase(b->hash());
-                bIndex = (bIndex + 1) % bCH.size();
-                b = bCH[bIndex];
-                bNext = bCH[(bIndex + 1) % bCH.size()];
-            }
-        }
-
-        cout << "bounding pts" << endl;
-        cout << *a << *b << endl;
-        cout << endl;
-        return std::pair<Point*, Point*>{a, b};
+        st.push_back(&points[i]);
     }
 
-    void rejoin(int first, int mid, int last)
+    return st;
+}
+
+bool doConvexHullsIntersect(vector<Point>& l, vector<Point>& r)
+{
+    Point lMean;
+    double lDist = 0;
+    for (Point& p : l)
     {
-        // This creates two vector that gets the points in the convex
-        // hull in clockwise and anticlockwise order. This can be done
-        // more efficiently with a circular doubly linked list but stl
-        // doesn't provide that and I'm too busy to do it myself :'(
-        vector<Point*> aUpperHalf;
-        vector<Point*> aLowerHalf;
-        for (int i = mid - 1; i >= first; i--)
-        {
-            if (pointsInConvexHull.count(points[i].hash()))
-            {
-                if (points[i].y <= points[mid].y)
-                {
-                    aLowerHalf.push_back(&points[i]);
-                }
-                else if (points[i].y > points[mid].y)
-                {
-                    aUpperHalf.push_back(&points[i]);
-                }
-            }
-        }
-        vector<Point*> aClockwise;
-        aClockwise.push_back(&points[mid]);
-        aClockwise.insert(aClockwise.end(), aLowerHalf.begin(), aLowerHalf.end());
-        aClockwise.insert(aClockwise.end(), aUpperHalf.rbegin(), aUpperHalf.rend());
-
-        vector<Point*> aAntiClockwise;
-        aAntiClockwise.push_back(&points[mid]);
-        aAntiClockwise.insert(aAntiClockwise.end(), aUpperHalf.begin(), aUpperHalf.end());
-        aAntiClockwise.insert(aAntiClockwise.end(), aLowerHalf.rbegin(), aLowerHalf.rend());
-
-        // Repeat the same process for the b convex hull
-        vector<Point*> bUpperHalf;
-        vector<Point*> bLowerHalf;
-        for (int i = mid + 2; i <= last; i++)
-        {
-            if (pointsInConvexHull.count(points[i].hash()))
-            {
-                if (points[i].y <= points[mid + 1].y)
-                {
-                    bLowerHalf.push_back(&points[i]);
-                }
-                else if (points[i].y > points[mid + 1].y)
-                {
-                    bUpperHalf.push_back(&points[i]);
-                }
-            }
-        }
-
-        vector<Point*> bAntiClockwise;
-        bAntiClockwise.push_back(&points[mid + 1]);
-        bAntiClockwise.insert(bAntiClockwise.end(), bLowerHalf.begin(), bLowerHalf.end());
-        bAntiClockwise.insert(bAntiClockwise.end(), bUpperHalf.rbegin(), bUpperHalf.rend());
-
-        vector<Point*> bClockwise;
-        bClockwise.push_back(&points[mid + 1]);
-        bClockwise.insert(bClockwise.end(), bUpperHalf.begin(), bUpperHalf.end());
-        bClockwise.insert(bClockwise.end(), bLowerHalf.rbegin(), bLowerHalf.rend());
-        
-        cout << "First second" << endl;
-        std::pair<Point*, Point*> bottomPoints = mergeCH(aClockwise, bAntiClockwise, -1);
-        std::pair<Point*, Point*> upperPoints = mergeCH(aAntiClockwise, bClockwise, +1);
-
-        pointsInConvexHull.insert(bottomPoints.first->hash());
-        pointsInConvexHull.insert(bottomPoints.second->hash());
-        pointsInConvexHull.insert(upperPoints.first->hash());
-        pointsInConvexHull.insert(upperPoints.second->hash());
+        lMean.x += p.x;
+        lMean.y += p.y;
+    }
+    lMean.x /= l.size();
+    lMean.y /= l.size();
+    for (Point& p : l)
+    {
+        lDist = fmax(lDist, lMean.calculateDist(p));
     }
 
-public:
-    ConvexHullSolver(
-        vector<Point>& _points,
-        unordered_set<string>& _pointsInConvexHull) :
-            points(_points),
-            pointsInConvexHull(_pointsInConvexHull) { }
+    cout << lMean << endl;
+    cout << lDist << endl;
 
-    void getConvexHull(int first, int last)
+    Point rMean;
+    double rDist = 0;
+    for (Point& p : r)
     {
-        // If there are 3 points or less, then we are guaranteed to be in a convex hull
-        if (last - first + 1 <= 3)
-        {
-            for (int i = first; i <= last; i++)
-            {
-                pointsInConvexHull.insert(points[i].hash());
-            }
-        }
-        else
-        {
-            int mid = (first + last)/2;
-            getConvexHull(first, mid);
-            getConvexHull(mid + 1, last);
-            rejoin(first, mid, last);
-        }
+        rMean.x += p.x;
+        rMean.y += p.y;
     }
-};
+    rMean.x /= r.size();
+    rMean.y /= r.size();
+    for (Point& p : r)
+    {
+        rDist = fmax(rDist, rMean.calculateDist(p));
+    }
 
+    cout << rMean << endl;
+    cout << rDist << endl;
+
+    return rDist + lDist >= lMean.calculateDist(rMean);
+}
 
 void uniformPointDistribution()
 {
     // Generate n points
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(-100, 100);
-    const int n = 10;
-    vector<Point> points(n);
-    unordered_set<string> generated;
-    for (int i = 0; i < n; i++)
+    cout << "n,c" << endl;
+    //cout << "x,y,isCH" << endl;
+    for (int n = 10; n < 1000; n += 10)
     {
-        do
+        vector<Point> points(n);
+        std::unordered_set<string> generated;
+        for (int i = 0; i < n; i++)
         {
-            points[i].x = distribution(generator);
-            points[i].y = distribution(generator);
-        } while (generated.find(points[i].hash()) != generated.end());
-        generated.insert(points[i].hash());
+            do
+            {
+                points[i].x = distribution(generator);
+                points[i].y = distribution(generator);
+            }
+            while (generated.find(points[i].hash()) != generated.end());
+            generated.insert(points[i].hash());
+        }
+
+        vector<Point*> convexHull = grahmScan(points);
+        cout << n - convexHull.size() << ',' << convexHull.size() << endl;
+
+        //for (Point &p : points)
+        //{
+        //    cout << p.x << "," << p.y << ",0" << endl;
+        //}
+
+        //for (Point* p : convexHull)
+        //{
+        //    cout << p->x << "," << p->y << ",1" << endl;
+        //}
     }
+}
 
-    // Sort points by x value
-    std::sort(points.begin(), points.begin() + n,
-    [](const Point &a, const Point &b) -> bool
+void gaussianPointDistribution()
+{
+    // Generate n points
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0, 1);
+    cout << "n,c" << endl;
+    //cout << "x,y,isCH" << endl;
+    for (int n = 10; n < 1000; n += 10)
     {
-        return a.x < b.x;
-    });
+        vector<Point> points(n);
+        std::unordered_set<string> generated;
+        for (int i = 0; i < n; i++)
+        {
+            do
+            {
+                points[i].x = distribution(generator) * 100;
+                points[i].y = distribution(generator) * 100;
+            }
+            while (generated.find(points[i].hash()) != generated.end());
+            generated.insert(points[i].hash());
+        }
 
-    // DEBUG
-    //for (Point& p : points)
-    //{
-    //    cout << p << ' ';
-    //}
-    //cout << endl;
+        vector<Point*> convexHull = grahmScan(points);
+        cout << n - convexHull.size() << ',' << convexHull.size() << endl;
 
-    unordered_set<string> pointsInConvexHull;
-    ConvexHullSolver cs(points, pointsInConvexHull);
-    cs.getConvexHull(0, n - 1);
+        //for (Point &p : points)
+        //{
+        //    cout << p.x << "," << p.y << ",0" << endl;
+        //}
 
-    cout << "x,y,isCH" << endl;
-    for (Point& p : points)
-    {
-        char flag = pointsInConvexHull.count(p.hash()) ? '1' : '0';
-        cout << p.x << ',' << p.y << ',' << flag << endl;
+        //for (Point* p : convexHull)
+        //{
+        //    cout << p->x << "," << p->y << ",1" << endl;
+        //}
     }
+}
+
+void intersectingHulls()
+{
+    vector<Point> ch1{{-10, -10}, {-9, 4}, {10, 7}, {0, -4}};
+    vector<Point> ch2{{20, 20}, {25, 10}, {5, 5}, {10, 15}, {17, 19}};
+    for (auto& p : ch1)
+    {
+        cout << p << ';';
+    }
+    cout << endl;
+
+    for (auto& p : ch2)
+    {
+        cout << p << ';';
+    }
+    cout << endl;
+    cout << doConvexHullsIntersect(ch1, ch2) << endl;
 }
 
 int main()
 {
-    uniformPointDistribution();
+    //uniformPointDistribution();
+    //gaussianPointDistribution();
+    //intersectingHulls();
     return 0;
 }
