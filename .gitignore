@@ -5,3 +5,4 @@
 *.dSYM
 *.o
 .ipynb_checkpoints/**
+.ipynb_checkpoints/
