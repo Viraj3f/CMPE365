@@ -76,6 +76,7 @@ vector<Point*> grahmScan(vector<Point>& points)
             return a.phi < b.phi;
         });
 
+    // Compute graham scan.
     vector<Point*> st;
     st.push_back(&p0);
     st.push_back(&points[1]);
@@ -145,11 +146,6 @@ int getTangentDirection(Point& a, Point& b, Point& z)
     int det = a.x * b.y - a.x * z.y
             - a.y * b.x + a.y * z.x
             + b.x * z.y - b.y * z.x;
-
-    if (det == 0)
-    {
-        return det;
-    }
 
     return det;
 }
