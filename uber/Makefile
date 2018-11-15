@@ -1,18 +1,19 @@
-CXX=clang++
-CXXFLAGS=-std=c++11 -I.
+CXX = clang++
+CXXFLAGS = -std=c++11 -Wall -Werror -Wpedantic
 
 deps = CityGraph.hpp
-obj=uber.o CityGraph.o
-src=$(obj:.o=.cpp)
+src = uber.cpp CityGraph.cpp
+obj = $(addprefix bin/,$(src:.cpp=.o))
 
-uber: uber.o CityGraph.o
-	clang++ -std=c++14 -o uber uber.o CityGraph.o
+$(info ${obj})
 
-uber.o: uber.cpp CityGraph.hpp
-	clang++ -std=c++14 -c uber.cpp
+all: bin/uber.out
 
-CityGraph.o: CityGraph.cpp CityGraph.hpp
-	clang++ -std=c++14 -c CityGraph.cpp
+bin/uber.out: $(obj)
+	$(CXX) $(CXXFLAGS) -o bin/uber.out $^
+
+bin/%.o: %.cpp $(deps)
+	clang++ $(CXXFLAGS) -std=c++14 -c $< -o $@
 
 clean:
-	rm *.o *.d *.out
+	rm bin/*.o bin/*.d bin/*.out

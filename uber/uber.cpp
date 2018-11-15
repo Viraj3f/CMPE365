@@ -58,7 +58,7 @@ class RequestParser
 int main()
 {
     CityGraph<49> graph;
-    //graph.parseCSV("./network.csv");
+    graph.parseCSV("./data/network.csv");
 
     //RequestParser requestParser("./requests.csv");
     //graph.getShortestPathsFrom(1);
