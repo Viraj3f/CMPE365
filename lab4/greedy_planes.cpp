@@ -211,8 +211,8 @@ void part2Hybrid(int i)
 int main()
 {
     //testInputs();
-    //part1();
+    part1();
     //part2Early(2);
     //part2Punish(2);
-    part2Hybrid(2);
+    //part2Hybrid(2);
 }
