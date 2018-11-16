@@ -1,8 +1,8 @@
 CXX = clang++
-CXXFLAGS = -std=c++11 -Wall -Werror -Wpedantic
+CXXFLAGS = -std=c++11 -Wall -Wpedantic
 
-deps = CityGraph.hpp
-src = uber.cpp CityGraph.cpp
+deps = CityGraph.hpp Driver.hpp Passenger.hpp
+src = uber.cpp Driver.cpp Passenger.cpp
 obj = $(addprefix bin/,$(src:.cpp=.o))
 
 $(info ${obj})
