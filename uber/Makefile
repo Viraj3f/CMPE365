@@ -1,5 +1,5 @@
 CXX = clang++
-CXXFLAGS = -std=c++11 -Wall -Wpedantic -g
+CXXFLAGS = -std=c++11 -g
 
 deps = CityGraph.hpp Driver.hpp Passenger.hpp
 src = uber.cpp Driver.cpp Passenger.cpp

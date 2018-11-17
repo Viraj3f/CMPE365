@@ -29,6 +29,7 @@ class Driver
     public:
     int id;
     int currentNode;
+    int committedTripLength;
     std::queue<Trip> trips;
     Driver(int startNode);
 

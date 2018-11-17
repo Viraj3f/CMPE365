@@ -35,6 +35,10 @@ class CityGraph
 
         bool operator<(const NodeDist& other) const
         {
+            if (dist == other.dist)
+            {
+                return node < other.node;
+            }
             return dist > other.dist;
         }
     };
@@ -158,6 +162,7 @@ class CityGraph
      */
     const vector<int>& shortestDistancesFrom(int source)
     {
+        assert(0 <= source && source < N);
         if (cachedDistances[source] == nullptr)
         {
             generateDistancesAndPathsFrom(source);
@@ -171,6 +176,7 @@ class CityGraph
      */
     const vector<int>& shortestPathsFrom(int source)
     {
+        assert(0 <= source && source < N);
         if (cachedPaths[source] == nullptr)
         {
             generateDistancesAndPathsFrom(source);
