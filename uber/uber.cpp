@@ -86,7 +86,7 @@ int main(int argc, char** argv)
     int totalWaitingTime = 0;
     for (int time = 0; time < maxTime; time++)
     {
-        if (futurePassengers.empty() && waitingPassengers.empty())
+        if (futurePassengers.empty() && waitingPassengers.empty() && freeDrivers.size() == drivers.size())
         {
             break;
         }
