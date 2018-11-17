@@ -25,10 +25,10 @@ void parseRequests(const string& filename, std::queue<Passenger>& q)
         int requestTime = std::stoi(line);
 
         std::getline(ss, line, ',');
-        int startLocation = std::stoi(line);
+        int startLocation = std::stoi(line) - 1;
 
         std::getline(ss, line, ',');
-        int endLocation = std::stoi(line);
+        int endLocation = std::stoi(line) - 1;
 
         q.push(Passenger{requestTime, startLocation, endLocation, counter++});
     }

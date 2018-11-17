@@ -10,12 +10,13 @@ using std::string;
 
 struct Passenger
 {
-    int id;
     int requestTime;
     int startLocation;
     int endLocation;
+    int id;
 };
 
 void parseRequests(const string& filename, std::queue<Passenger>& q);
+std::ostream& operator<<(std::ostream& o, Passenger& p);
 
 #endif

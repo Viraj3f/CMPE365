@@ -7,6 +7,8 @@
 #include <fstream>
 #include <cstring>
 #include <iostream>
+#include <assert.h>
+#include <sstream>
 
 using std::vector;
 using std::string;
@@ -43,6 +45,8 @@ class CityGraph
      */
     void generateDistancesAndPathsFrom(int source)
     {
+        assert(0 <= source && source < N);
+
         // Check if this path has been computed before.
         if (cachedPaths[source] != nullptr &&
                 cachedDistances[source] != nullptr)
@@ -137,10 +141,13 @@ class CityGraph
 
         for (int i = 0; i < N; i++)
         {
+            string line;
+            std::getline(file, line);
+            std::stringstream ss(line);
             for (int j = 0; j < N; j++)
             {
                 string parsedInt;
-                std::getline(file, parsedInt, ',');
+                std::getline(ss, parsedInt, ',');
                 matrix[i][j] = std::stoi(parsedInt);
             }
         }
