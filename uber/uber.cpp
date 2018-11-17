@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     // Parse future requests into queue
     std::queue<Passenger> futurePassengers;
     std::queue<Passenger> waitingPassengers;
-    parseRequests("./data/requests.csv", futurePassengers);
+    parseRequests("./data/supplementpickups.csv", futurePassengers);
 
     // Create drivers and free drivers list.
     int maxCommittedTrips = settings.maxCommittedTrips;
