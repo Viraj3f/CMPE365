@@ -13,6 +13,7 @@ Driver::Driver(int startNode)
     currentNode = startNode;
     committedTripLength = 0;
     timeSpentOnCurrentTrip = 0;
+    currentTime = 0;
 }
 
 void Driver::addPickup(Passenger& p, int distance)
@@ -37,7 +38,6 @@ bool Driver::step(Trip& t)
     timeSpentOnCurrentTrip++;
     if (timeSpentOnCurrentTrip < trips.front().distance)
     {
-        timeSpentOnCurrentTrip++;
         return false;
     }
     else

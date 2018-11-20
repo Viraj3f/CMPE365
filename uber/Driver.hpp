@@ -30,6 +30,7 @@ class Driver
     int id;
     int currentNode;
     int committedTripLength;
+    int currentTime;
     std::queue<Trip> trips;
     Driver(int startNode);
 
