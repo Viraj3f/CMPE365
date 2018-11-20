@@ -84,9 +84,7 @@ int main(int argc, char** argv)
         for (Driver& d : drivers)
         {
             int timeToPickup = graph.shortestDistancesFrom(d.currentNode)[p.startLocation];
-            int waitingTime = d.currentTime + timeToPickup > p.requestTime ?
-                (d.currentTime + timeToPickup) - p.requestTime : 0;
-
+            int waitingTime = std::max((d.currentTime + timeToPickup) - p.requestTime, 0);
             if (waitingTime < minWaitingTime)
             {
                 bestDriver = &d;
@@ -98,7 +96,7 @@ int main(int argc, char** argv)
         // The distance to the dropoff.
         int timeToDropoff = graph.shortestDistancesFrom(p.startLocation)[p.endLocation];
 
-        // If an uber arrives to early, it needs to "stall" until the passenger is ready.
+        // If an uber arrives too early, it needs to "stall" until the passenger is ready.
         int stallTime = std::max(0, p.requestTime - (bestDriver->currentTime + bestTimeToPickup));
 
         // Update the best driver.
