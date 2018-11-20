@@ -33,7 +33,9 @@ bool Driver::step(Trip& t)
     {
         return false;
     }
-    else if (timeSpentOnCurrentTrip < trips.front().distance)
+
+    timeSpentOnCurrentTrip++;
+    if (timeSpentOnCurrentTrip < trips.front().distance)
     {
         timeSpentOnCurrentTrip++;
         return false;
@@ -42,7 +44,7 @@ bool Driver::step(Trip& t)
     {
         t = trips.front();
         currentNode = trips.front().endLocation;
-        timeSpentOnCurrentTrip = t.type == Pickup ? 1 : 0;
+        timeSpentOnCurrentTrip = 0;
         committedTripLength -= t.distance;
         trips.pop();
 
